@@ -1,10 +1,12 @@
 import tensorflow as tf
+from tensorflow.keras import Input
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 import pandas as pd
 from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.utils import to_categorical
 
-from src import set_seed, process_corpus
+from src import set_seed, process_corpus, GodinTextGenModel
 
 # setup
 
@@ -27,6 +29,23 @@ tokenizer = Tokenizer()
 tokenizer.fit_on_texts(corpus)
 
 sequences = tokenizer.texts_to_sequences(corpus)
-vocab_size = len(tokenizer.word_index) + 1
+vocabulary_size = len(tokenizer.word_index) + 1
 
-print(f'Vocabulary Size: {vocab_size}')
+print(f'Vocabulary Size: {vocabulary_size}')
+
+# separate into input and output
+sequences = array(sequences)
+
+X, y = sequences[:, :-1], sequences[:, -1]
+y = to_categorical(y, num_classes=vocabulary_size)
+
+seq_length = X.shape[1]
+
+inputs = Input((4, ))
+
+model = GodinTextGenModel(
+    vocabulary_size=vocabulary_size,
+)(inputs)
+
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.fit(X, y, batch_size=128, epochs=100)
