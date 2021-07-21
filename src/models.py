@@ -1,0 +1,3 @@
+
+class GodinTextGenModel():
+    pass
