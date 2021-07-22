@@ -1,12 +1,13 @@
 import tensorflow as tf
-from tensorflow.keras import Input
+from tensorflow.keras import Input, Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 import pandas as pd
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.utils import to_categorical
+import numpy as np
 
-from src import set_seed, process_corpus, GodinTextGenModel
+from src import set_seed, tokenize_corpus, split_tokens_into_fixed_sequences, GodinTextGenModel, build_text_gen_model
 
 # setup
 
@@ -20,32 +21,40 @@ print('Num GPUs Available: ', len(tf.config.list_physical_devices('GPU')))
 print('TF built with CUDA:', tf.test.is_built_with_cuda())
 
 # setup
-set_seed(42)
+RANDOM_SEED = 42
+SEQUENCE_LENGTH = 50
+BATCH_SIZE = 2024
+
+set_seed(RANDOM_SEED)
 
 dataset = pd.read_csv('./data/clean_dataset.csv')
-corpus = process_corpus(dataset.content_plain.values)
+
+tokens = tokenize_corpus(dataset.content_plain.values)  # memory error occurs on the all dataset
 
 tokenizer = Tokenizer()
-tokenizer.fit_on_texts(corpus)
+tokenizer.fit_on_texts(tokens)
 
-sequences = tokenizer.texts_to_sequences(corpus)
+sequences = tokenizer.texts_to_sequences(tokens)
 vocabulary_size = len(tokenizer.word_index) + 1
 
 print(f'Vocabulary Size: {vocabulary_size}')
 
 # separate into input and output
-sequences = array(sequences)
+dataset = tf.data.Dataset \
+    .from_tensor_slices(sequences) \
+    .window(SEQUENCE_LENGTH, shift=1, drop_remainder=True) \
+    .flat_map(lambda window: window.batch(SEQUENCE_LENGTH)) \
+    .batch(BATCH_SIZE) \
+    .map(lambda window: (window[:, :-1], window[:, -1])) \
+    .prefetch(2)
 
-X, y = sequences[:, :-1], sequences[:, -1]
-y = to_categorical(y, num_classes=vocabulary_size)
+model = build_text_gen_model(SEQUENCE_LENGTH, vocabulary_size=vocabulary_size)
 
-seq_length = X.shape[1]
+print(model.summary())
 
-inputs = Input((4, ))
+# for batch in dataset:
+#     print(batch)
+#     exit()
 
-model = GodinTextGenModel(
-    vocabulary_size=vocabulary_size,
-)(inputs)
-
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-model.fit(X, y, batch_size=128, epochs=100)
+model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.fit(dataset, epochs=100)

@@ -1,5 +1,5 @@
-from tensorflow.keras import Model
-from tensorflow.keras.layers import LSTM, Dense, Embedding
+from tensorflow.keras import Model, Input
+from tensorflow.keras.layers import LSTM, Dense, Embedding, TimeDistributed
 
 
 class GodinTextGenModel(Model):
@@ -19,3 +19,13 @@ class GodinTextGenModel(Model):
         x = self.linear(x)
 
         return self.vocabulary_matcher(x)
+
+
+def build_text_gen_model(input_size: int, vocabulary_size: int) -> Model:
+    inputs = Input((input_size, ))
+
+    outputs = GodinTextGenModel(
+        vocabulary_size=vocabulary_size,
+    )(inputs)
+
+    return Model(inputs=inputs, outputs=outputs)
