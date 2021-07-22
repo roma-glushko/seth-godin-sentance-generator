@@ -7,9 +7,9 @@ class GodinTextGenModel(Model):
         super(GodinTextGenModel, self).__init__(**kwargs)
 
         self.word_embedding = Embedding(vocabulary_size, 50)
-        self.lstm_1 = LSTM(124, return_sequences=True)
-        self.lstm_2 = LSTM(124)
-        self.linear = Dense(124, activation='relu')
+        self.lstm_1 = LSTM(256, return_sequences=True)
+        self.lstm_2 = LSTM(256)
+        self.linear = Dense(256, activation='relu')
         self.vocabulary_matcher = Dense(vocabulary_size, activation='softmax')
 
     def call(self, inputs):

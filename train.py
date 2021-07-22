@@ -1,3 +1,5 @@
+import pickle
+
 import tensorflow as tf
 from tensorflow.keras import Input, Model
 from tensorflow.keras.optimizers import Adam
@@ -58,3 +60,8 @@ print(model.summary())
 
 model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 model.fit(dataset, epochs=100)
+
+# save the model to file
+model.save('tmp/model.h5')
+# save the tokenizer
+pickle.dump(tokenizer, open('tmp/tokenizer.pkl', 'wb'))
