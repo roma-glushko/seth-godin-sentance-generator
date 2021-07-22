@@ -837,6 +837,22 @@ typing-extensions = ">=3.7.4,<3.8.0"
 wrapt = ">=1.12.1,<1.13.0"
 
 [[package]]
+name = "tensorflow-hub"
+version = "0.12.0"
+description = "TensorFlow Hub is a library to foster the publication, discovery, and consumption of reusable parts of machine learning models."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+numpy = ">=1.12.0"
+protobuf = ">=3.8.0"
+
+[package.extras]
+make_image_classifier = ["keras-preprocessing"]
+make_nearest_neighbour_index = ["apache-beam", "annoy"]
+
+[[package]]
 name = "termcolor"
 version = "1.1.0"
 description = "ANSII Color formatting for output in terminal."
@@ -936,7 +952,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "04fc944eb0a34a93432522c12bde5fc899157918441942a46f536516ea22e353"
+content-hash = "6f2ce118f94eee2363d89e654dc1ba606024314a472ee07395f12366197bfabd"
 
 [metadata.files]
 absl-py = [
@@ -1654,6 +1670,9 @@ tensorflow-gpu = [
     {file = "tensorflow_gpu-2.5.0-cp38-cp38-win_amd64.whl", hash = "sha256:262c40432f1af638873c7210effef9eb3b74f1783478c438f854e0f1b14f80b0"},
     {file = "tensorflow_gpu-2.5.0-cp39-cp39-manylinux2010_x86_64.whl", hash = "sha256:90c1ecc8e72d20f4a036eaa27bdbb6f674f567de1f821b34474479ef98ff0b33"},
     {file = "tensorflow_gpu-2.5.0-cp39-cp39-win_amd64.whl", hash = "sha256:232b9e38fe0decede1bd5faa42117e5e8e1d7a2db28a056fbd272c9c08f81a2e"},
+]
+tensorflow-hub = [
+    {file = "tensorflow_hub-0.12.0-py2.py3-none-any.whl", hash = "sha256:822fe5f7338c95efcc3a534011c6689e4309ba2459def87194179c4de8a6e1fc"},
 ]
 termcolor = [
     {file = "termcolor-1.1.0.tar.gz", hash = "sha256:1d6d69ce66211143803fbc56652b41d73b4a400a2891d7bf7a1cdf4c02de613b"},

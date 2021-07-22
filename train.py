@@ -1,15 +1,12 @@
 import pickle
 
+import pandas as pd
 import tensorflow as tf
-from tensorflow.keras import Input, Model
+from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-import pandas as pd
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.utils import to_categorical
-import numpy as np
 
-from src import set_seed, tokenize_corpus, split_tokens_into_fixed_sequences, GodinTextGenModel, build_text_gen_model
+from src import set_seed, tokenize_corpus, build_text_gen_model
 
 # setup
 
@@ -24,8 +21,8 @@ print('TF built with CUDA:', tf.test.is_built_with_cuda())
 
 # setup
 RANDOM_SEED = 42
-SEQUENCE_LENGTH = 50
-BATCH_SIZE = 2024
+SEQUENCE_LENGTH = 100
+BATCH_SIZE = 512
 
 set_seed(RANDOM_SEED)
 
@@ -39,7 +36,7 @@ tokenizer.fit_on_texts(tokens)
 sequences = tokenizer.texts_to_sequences(tokens)
 vocabulary_size = len(tokenizer.word_index) + 1
 
-print(f'Vocabulary Size: {vocabulary_size}')
+print(f'Vocabulary Size: {vocabulary_size}')  # 38783 -> 33380
 
 # separate into input and output
 dataset = tf.data.Dataset \
@@ -50,7 +47,11 @@ dataset = tf.data.Dataset \
     .map(lambda window: (window[:, :-1], window[:, -1])) \
     .prefetch(2)
 
-model = build_text_gen_model(SEQUENCE_LENGTH, vocabulary_size=vocabulary_size)
+model = build_text_gen_model(
+    SEQUENCE_LENGTH,
+    vocabulary_size=vocabulary_size,
+    embedding_dimensions=256,
+)
 
 print(model.summary())
 
@@ -58,8 +59,15 @@ print(model.summary())
 #     print(batch)
 #     exit()
 
-model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-model.fit(dataset, epochs=100)
+# print(tokenizer.word_index)
+
+model.compile(
+    loss='sparse_categorical_crossentropy',
+    optimizer=Adam(learning_rate=3e-3),
+    metrics=['accuracy'],
+)
+
+model.fit(dataset, epochs=300)
 
 # save the model to file
 model.save('tmp/model.h5')
