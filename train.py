@@ -61,13 +61,33 @@ print(model.summary())
 
 # print(tokenizer.word_index)
 
+# callbacks
+early_stopping = EarlyStopping(
+    patience=10,
+    min_delta=0.001,
+    restore_best_weights=True,
+)
+model_saver = ModelCheckpoint(
+    filepath='tmp/model-acc_{accuracy:.4f}-epoch_{epoch}.h5',
+    mode='max',
+    monitor='accuracy',
+    save_best_only=True,
+    save_weights_only=True,
+    verbose=1,
+)
+
+
 model.compile(
     loss='sparse_categorical_crossentropy',
     optimizer=Adam(learning_rate=3e-3),
     metrics=['accuracy'],
 )
 
-model.fit(dataset, epochs=300)
+model.fit(
+    dataset,
+    epochs=300,
+    callbacks=[early_stopping, model_saver]
+)
 
 # save the model to file
 model.save('tmp/model.h5')
