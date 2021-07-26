@@ -20,7 +20,7 @@ class GodinTextGenModel(Model):
 
 
 def build_text_gen_model(input_size: int, vocabulary_size: int, embedding_dimensions: int) -> Model:
-    inputs = Input((input_size, ))
+    inputs = Input((None, ))
 
     outputs = GodinTextGenModel(
         vocabulary_size=vocabulary_size,

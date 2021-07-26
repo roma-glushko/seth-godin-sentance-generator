@@ -9,6 +9,7 @@ from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 from src import set_seed, tokenize_corpus, build_text_gen_model
 
 # setup
+from src.utils import SentenceLogger
 
 tf.get_logger().setLevel('ERROR')
 
@@ -68,7 +69,7 @@ early_stopping = EarlyStopping(
     restore_best_weights=True,
 )
 model_saver = ModelCheckpoint(
-    filepath='tmp/model-acc_{accuracy:.4f}-epoch_{epoch}.h5',
+    filepath='tmp/model-loss_{loss:.4f}-epoch_{epoch}.h5',
     mode='max',
     monitor='accuracy',
     save_best_only=True,
@@ -76,17 +77,27 @@ model_saver = ModelCheckpoint(
     verbose=1,
 )
 
+sentence_logger = SentenceLogger(
+    tokenizer,
+    seed_text='Money is',
+    sentence_length=20,
+    temperatures=[0.1, 0.5, 0.8, 1.0, 1.5],
+)
+
 
 model.compile(
     loss='sparse_categorical_crossentropy',
     optimizer=Adam(learning_rate=3e-3),
-    metrics=['accuracy'],
 )
 
 model.fit(
     dataset,
     epochs=300,
-    callbacks=[early_stopping, model_saver]
+    callbacks=[
+        early_stopping,
+        model_saver,
+        sentence_logger,
+    ]
 )
 
 # save the model to file
