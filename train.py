@@ -37,7 +37,7 @@ tokenizer.fit_on_texts(tokens)
 sequences = tokenizer.texts_to_sequences(tokens)
 vocabulary_size = len(tokenizer.word_index) + 1
 
-print(f'Vocabulary Size: {vocabulary_size}')  # 38783 -> 33380
+print(f'Vocabulary Size: {vocabulary_size}')  # 38783 -> 33380 -> 31285
 
 # separate into input and output
 dataset = tf.data.Dataset \
@@ -70,8 +70,8 @@ early_stopping = EarlyStopping(
 )
 model_saver = ModelCheckpoint(
     filepath='tmp/model-loss_{loss:.4f}-epoch_{epoch}.h5',
-    mode='max',
-    monitor='accuracy',
+    mode='min',
+    monitor='loss',
     save_best_only=True,
     save_weights_only=True,
     verbose=1,
@@ -79,7 +79,7 @@ model_saver = ModelCheckpoint(
 
 sentence_logger = SentenceLogger(
     tokenizer,
-    seed_text='Money is',
+    seed_text='Life is',
     sentence_length=20,
     temperatures=[0.1, 0.5, 0.8, 1.0, 1.5],
 )
