@@ -11,7 +11,7 @@ from src.utils import SentenceLogger
 # setup
 
 tf.get_logger().setLevel('ERROR')
-tf.config.optimizer.set_experimental_options({"auto_mixed_precision": True})
+# tf.config.optimizer.set_experimental_options({"auto_mixed_precision": True})
 
 try:
     gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -26,8 +26,8 @@ print('TF built with CUDA:', tf.test.is_built_with_cuda())
 # setup
 RANDOM_SEED = 42
 SEQUENCE_LENGTH = 100
-BATCH_SIZE = 256
-CHECKPOINT_PATH = './tmp/model-loss_3.9342-epoch_10.h5'
+BATCH_SIZE = 260
+CHECKPOINT_PATH = None #'./tmp/model-loss_3.9342-epoch_10.h5'
 EMBEDDING_DIMENSION = 256
 
 set_seed(RANDOM_SEED)
@@ -44,6 +44,8 @@ vocabulary_size = len(tokenizer.word_index) + 1
 
 print(f'Vocabulary Size: {vocabulary_size}')  # 38783 -> 33380 -> 31285
 
+# save the tokenizer
+pickle.dump(tokenizer, open('tmp/tokenizer.pkl', 'wb'))
 
 # separate into input and output
 dataset = tf.data.Dataset \
@@ -87,7 +89,7 @@ sentence_logger = SentenceLogger(
     tokenizer,
     seed_text='Life is',
     sentence_length=50,
-    temperatures=[0.1, 0.2, 0.5, 0.6, 0.7, 0.8, 1., 1.5],
+    temperatures=(0.65, 0.7, 0.75, 0.77, 0.8, 0.85, 0.9, 1.0),
 )
 
 

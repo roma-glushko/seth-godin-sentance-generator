@@ -1,5 +1,5 @@
 from tensorflow.keras import Model, Input
-from tensorflow.keras.layers import LSTM, Dropout, Dense, Embedding
+from tensorflow.keras.layers import LSTM, Dense, Embedding
 
 
 class GodinTextGenModel(Model):

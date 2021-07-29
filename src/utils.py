@@ -32,7 +32,7 @@ class SentenceGenerator:
             input_sequence = tf.convert_to_tensor([generated_sequence])
 
             probabilities = self.model.predict(input_sequence).astype('float64')
-            probabilities = self.reweight_next_word_probabilities(probabilities[0, -1])
+            probabilities = self.reweight_next_word_probabilities(probabilities[0, -1], temperature)
 
             next_token: int = self.genertate_next_word(probabilities)
 
@@ -57,11 +57,11 @@ class SentenceGenerator:
 
 class SentenceLogger(Callback):
     def __init__(
-            self,
-            tokenizer: Tokenizer,
-            seed_text: str,
-            sentence_length: int = 20,
-            temperatures: List[float] = 1.0,
+        self,
+        tokenizer: Tokenizer,
+        seed_text: str,
+        sentence_length: int = 20,
+        temperatures: List[float] = 1.0,
     ):
         self.temperatures = temperatures
         self.sentence_length = sentence_length
