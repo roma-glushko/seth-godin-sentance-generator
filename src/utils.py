@@ -32,17 +32,21 @@ class SentenceGenerator:
             input_sequence = tf.convert_to_tensor([generated_sequence])
 
             probabilities = self.model.predict(input_sequence).astype('float64')
-            next_token: int = self.sample_token(probabilities[0], temperature)
+            probabilities = self.reweight_next_word_probabilities(probabilities[0, -1])
+
+            next_token: int = self.genertate_next_word(probabilities)
 
             generated_sequence.append([next_token])
 
         return self.decode_sequence(generated_sequence)
 
-    def sample_token(self, probabilities, temperature: float):
-        probabilities = np.exp(np.log(probabilities) / temperature)
-        probabilities = probabilities / np.sum(probabilities)
-
+    def genertate_next_word(self, probabilities):
         return np.argmax(np.random.multinomial(1, probabilities, 1))
+
+    def reweight_next_word_probabilities(self, probabilities, temperature: float):
+        probabilities = np.exp(np.log(probabilities) / temperature)
+
+        return probabilities / np.sum(probabilities)  # normalize probabilities to sum up to 1
 
     def encode_text(self, seed_text: str):
         return self.tokenizer.texts_to_sequences(seed_text.split())

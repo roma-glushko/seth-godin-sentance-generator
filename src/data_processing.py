@@ -2,12 +2,11 @@ from typing import List
 from tensorflow.keras.preprocessing.text import text_to_word_sequence
 
 
-def tokenize_corpus(corpus: List[str]) -> List[str]:
+def tokenize_corpus(corpus: List[str], filters: str = '!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n') -> List[str]:
     tokens = []
 
     for sample in corpus:
-        sample_words = text_to_word_sequence(sample)
-
+        sample_words = text_to_word_sequence(sample, filters=filters)
         tokens.extend(sample_words)
 
     return tokens

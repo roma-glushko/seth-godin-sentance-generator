@@ -2,19 +2,22 @@ import pickle
 
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.preprocessing.text import Tokenizer
 
 from src import set_seed, tokenize_corpus, build_text_gen_model
-
-# setup
 from src.utils import SentenceLogger
 
-tf.get_logger().setLevel('ERROR')
+# setup
 
-gpus = tf.config.experimental.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(gpus[0], True)
+tf.get_logger().setLevel('ERROR')
+tf.config.optimizer.set_experimental_options({"auto_mixed_precision": True})
+
+try:
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    tf.config.experimental.set_memory_growth(gpus[0], True)
+except:
+    pass
 
 print('TF', tf.__version__)
 print('Num GPUs Available: ', len(tf.config.list_physical_devices('GPU')))
@@ -23,7 +26,9 @@ print('TF built with CUDA:', tf.test.is_built_with_cuda())
 # setup
 RANDOM_SEED = 42
 SEQUENCE_LENGTH = 100
-BATCH_SIZE = 512
+BATCH_SIZE = 256
+CHECKPOINT_PATH = './tmp/model-loss_3.9342-epoch_10.h5'
+EMBEDDING_DIMENSION = 256
 
 set_seed(RANDOM_SEED)
 
@@ -39,28 +44,28 @@ vocabulary_size = len(tokenizer.word_index) + 1
 
 print(f'Vocabulary Size: {vocabulary_size}')  # 38783 -> 33380 -> 31285
 
+
 # separate into input and output
 dataset = tf.data.Dataset \
     .from_tensor_slices(sequences) \
     .window(SEQUENCE_LENGTH, shift=1, drop_remainder=True) \
     .flat_map(lambda window: window.batch(SEQUENCE_LENGTH)) \
     .batch(BATCH_SIZE) \
-    .map(lambda window: (window[:, :-1], window[:, -1])) \
-    .prefetch(2)
+    .map(lambda window: (window[:, :-1], window[:, 1:])) \
+    .prefetch(tf.data.experimental.AUTOTUNE)
+
+# window[:, :-1], window[:, 1:]
+# window[:, :-1], window[:, -1]
 
 model = build_text_gen_model(
-    SEQUENCE_LENGTH,
     vocabulary_size=vocabulary_size,
-    embedding_dimensions=256,
+    embedding_dimensions=EMBEDDING_DIMENSION,
 )
 
+if CHECKPOINT_PATH:
+    model.load_weights(CHECKPOINT_PATH)
+
 print(model.summary())
-
-# for batch in dataset:
-#     print(batch)
-#     exit()
-
-# print(tokenizer.word_index)
 
 # callbacks
 early_stopping = EarlyStopping(
@@ -68,6 +73,7 @@ early_stopping = EarlyStopping(
     min_delta=0.001,
     restore_best_weights=True,
 )
+
 model_saver = ModelCheckpoint(
     filepath='tmp/model-loss_{loss:.4f}-epoch_{epoch}.h5',
     mode='min',
@@ -80,14 +86,15 @@ model_saver = ModelCheckpoint(
 sentence_logger = SentenceLogger(
     tokenizer,
     seed_text='Life is',
-    sentence_length=20,
-    temperatures=[0.1, 0.5, 0.8, 1.0, 1.5],
+    sentence_length=50,
+    temperatures=[0.1, 0.2, 0.5, 0.6, 0.7, 0.8, 1., 1.5],
 )
 
 
 model.compile(
     loss='sparse_categorical_crossentropy',
-    optimizer=Adam(learning_rate=3e-3),
+    # optimizer=Adam(learning_rate=5e-3),
+    optimizer='adam',
 )
 
 model.fit(
